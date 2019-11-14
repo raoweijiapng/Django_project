@@ -1,0 +1,173 @@
+{% extends 'myadmin/index.html' %}
+
+{% block title %}
+<title>后台订单列表</title>
+{% endblock %}
+
+
+{% block con %}
+<div class="row-content am-cf">
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf">
+                <div class="widget-head am-cf">
+                    <div class="widget-title  am-cf">订单列表</div>
+
+                </div>
+                <div class="widget-body  am-fr">
+
+                    <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
+                        <div class="am-form-group">
+                            <div class="am-btn-toolbar">
+                                <div class="am-btn-group am-btn-group-xs">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form>
+                    <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
+                        <div class="am-form-group tpl-table-list-select">
+                            <select name="types" data-am-selected="{btnSize: 'sm'}" style="display: none;">
+                              <option value="all" {% if request.GET.types == 'all' %} selected {% endif %}>全局搜索</option>
+                              <option value="id" {% if request.GET.types == 'id' %} selected {% endif %}>ID</option>
+                              <option value="username" {% if request.GET.types == 'username' %} selected {% endif %}>收件人</option>
+                              <option value="phone" {% if request.GET.types == 'phone' %} selected {% endif %}>电话</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="am-u-sm-12 am-u-md-12 am-u-lg-3">
+                        <div class="am-input-group am-input-group-sm tpl-form-border-form cl-p">
+                            <input type="text" name="keywords" value="{{ request.GET.keywords }}" class="am-form-field ">
+                            <span class="am-input-group-btn">
+                                <button class="am-btn  am-btn-default am-btn-success tpl-table-list-field am-icon-search"></button>
+                              </span>
+                        </div>
+                    </div>
+                    </form>
+
+
+                    <div class="am-u-sm-12">
+                        <table width="100%" class="am-table am-table-compact am-table-striped tpl-table-black ">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>收件人</th>
+                                    <th>电话</th>
+                                    <th>地址</th>
+                                    <th>总价</th>
+                                    <th>支付状态</th>
+                                    <th>支付方式</th>
+                                    <th>订单时间</th>
+                                    <th>会员名</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for v in orderslist %}
+                                <tr>
+                                    <td class="am-text-middle">{{ v.id }}</td>
+                                    <td class="am-text-middle">{{ v.username }}</td>
+                                    <td class="am-text-middle">{{ v.phone }}</td>
+                                    <td class="am-text-middle">{{ v.address }}</td>
+                                    <td class="am-text-middle">{{ v.totalprice }}</td>
+                                    <td class="am-text-middle">
+                                        <select uid="{{ v.id }}" class="select-status" style="color: black">
+                                            <option value="0" {% if v.status == 0 %} selected {% endif %}>未支付</option>
+                                            <option value="1" {% if v.status == 1 %} selected {% endif %}>已支付</option>
+                                        </select>
+                                    </td>
+                                    <td class="am-text-middle">
+                                        <select uid="{{ v.id }}" class="select-paytype" style="color: black">
+                                            <option value="0" {% if v.paytype == 0 %} selected {% endif %}>支付宝</option>
+                                            <option value="1" {% if v.paytype == 1 %} selected {% endif %}>其它</option>
+                                        </select>
+                                    </td>
+                                    <td class="am-text-middle">{{ v.addtime }}</td>
+                                    <td class="am-text-middle">{{ v.uid.nikename }}</td>
+                                    <td class="am-text-middle">
+                                        <div class="tpl-table-black-operation">
+                                             <a href="javascript:void(0)" cid="{{ v.id }}" class="removeCate tpl-table-black-operation-del">
+                                                <i class="am-icon-pencil"></i> 删除
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+            
+                                <!-- more data -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="am-u-lg-12 am-cf">
+
+                        <div class="am-fr">
+                            <ul class="am-pagination tpl-pagination">
+                                <!-- <li class="am-disabled"><a href="#">«</a></li> -->
+                                <!-- <li class="am-active"><a href="#">1</a></li> -->
+                            {% load pagetag %}
+                            {% showpage orderslist.paginator.num_pages request %}
+                                <!-- <li><a href="#">»</a></li> -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{<script type="text/javascript">
+    $('.select-status').change(function(){
+        // 获取当前元素的 值
+        var status = $(this).val()
+        // 获取当前元素的 id
+        var uid = $(this).attr('uid')
+
+        // 发送ajax请求.修改状态
+        $.get('{% url 'orders_set_status' %}',{'uid':uid,'status':status},function(data){
+            // 判断当前的返回值
+            if(data['code'] == 0){
+                alert(data['msg'])
+            }
+        },'json')
+
+    })
+       $('.select-paytype').change(function(){
+        // 获取当前元素的 值
+        var paytype = $(this).val()
+        // 获取当前元素的 id
+        var uid = $(this).attr('uid')
+
+        // 发送ajax请求.修改状态
+        $.get('{% url 'orders_set_paytype' %}',{'uid':uid,'paytype':paytype},function(data){
+            // 判断当前的返回值
+            if(data['code'] == 0){
+                alert(data['msg'])
+            }
+        },'json')
+
+    })
+
+    // 删除
+    $('.removeCate').click(function(){
+        // 获取当前选择的分类的id
+        var oid = $(this).attr('cid')
+        var a = $(this)
+        // 发送ajax请求.到后台执行删除
+        $.get('{% url 'myadmin_order_del' %}',{'oid':oid},function(data){
+            // 判断当前的返回值
+            if(data['code'] == 0){
+                // 删除成功
+                // $(this).parents('tr').remove()
+                //  此处的 $(this) 是谁? ajax对象 XMLHttpRequest
+                a.parents('tr').remove()
+            }
+            alert(data['msg'])
+        },'json')
+
+
+    })
+
+</script>
+{% endblock %}
